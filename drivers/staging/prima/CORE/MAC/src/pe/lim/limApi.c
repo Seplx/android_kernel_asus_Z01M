@@ -1063,8 +1063,8 @@ tSirRetStatus peOpen(tpAniSirGlobal pMac, tMacOpenParameters *pMacOpenParam)
      */
 #ifdef LIM_TRACE_RECORD
     MTRACE(limTraceInit(pMac));
-#endif
     lim_register_debug_callback();
+#endif
     return eSIR_SUCCESS;
 }
 
@@ -1383,7 +1383,6 @@ VOS_STATUS peHandleMgmtFrame( v_PVOID_t pvosGCtx, v_PVOID_t vosBuff)
     vos_pkt_t      *pVosPkt;
     VOS_STATUS      vosStatus;
     v_U8_t         *pRxPacketInfo;
-    tANI_U16        frameLen;
 
     pVosPkt = (vos_pkt_t *)vosBuff;
     if (NULL == pVosPkt)
@@ -1407,12 +1406,6 @@ VOS_STATUS peHandleMgmtFrame( v_PVOID_t pvosGCtx, v_PVOID_t vosBuff)
         return VOS_STATUS_E_FAILURE;
     }
 
-    frameLen = WDA_GET_RX_PAYLOAD_LEN(pRxPacketInfo);
-    if (frameLen > WDA_MAX_MGMT_MPDU_LEN) {
-        PELOG1(limLog(pMac, LOG1, FL("Dropping frame of len %d"), frameLen));
-        vos_pkt_return_packet(pVosPkt);
-        return VOS_STATUS_E_FAILURE;
-    }
 
     //
     //  The MPDU header is now present at a certain "offset" in
@@ -1422,7 +1415,7 @@ VOS_STATUS peHandleMgmtFrame( v_PVOID_t pvosGCtx, v_PVOID_t vosBuff)
     if(mHdr->fc.type == SIR_MAC_MGMT_FRAME) 
     {
     PELOG1(limLog( pMac, LOG1,
-       FL ( "RxBd=%pK mHdr=%pK Type: %d Subtype: %d  Sizes:FC%d Mgmt%d"),
+       FL ( "RxBd=%p mHdr=%p Type: %d Subtype: %d  Sizes:FC%d Mgmt%d"),
        pRxPacketInfo, mHdr, mHdr->fc.type, mHdr->fc.subType, sizeof(tSirMacFrameCtl), sizeof(tSirMacMgmtHdr) );)
 
 #ifdef WLAN_FEATURE_ROAM_SCAN_OFFLOAD
@@ -2431,8 +2424,6 @@ bool lim_is_assoc_req_for_drop(tpAniSirGlobal pMac, uint8_t *rx_pkt_info)
     tpPESession session_entry;
     tpSirMacMgmtHdr pMacHdr;
     tpDphHashNode sta_ds;
-    bool status;
-    eHalStatus lock_status = eHAL_STATUS_SUCCESS;
 
     pMacHdr = WDA_GET_RX_MAC_HEADER(rx_pkt_info);
     session_entry = peFindSessionByBssid(pMac, pMacHdr->bssId, &session_id);
@@ -2443,45 +2434,27 @@ bool lim_is_assoc_req_for_drop(tpAniSirGlobal pMac, uint8_t *rx_pkt_info)
        pMacHdr->sa););
        return false;
     }
-
-    lock_status =  pe_AcquireGlobalLock(&pMac->lim);
-    if (lock_status != eHAL_STATUS_SUCCESS)
-    {
-	    limLog(pMac, LOGE, FL("pe_AcquireGlobalLock error"));
-	    return TRUE;
-    }
-
     sta_ds = dphLookupHashEntry(pMac, pMacHdr->sa, &aid,
                        &session_entry->dph.dphHashTable);
     if (!sta_ds)
     {
        PELOG1(limLog(pMac, LOG1, FL("pStaDs is NULL")););
-       status = false;
-       goto end;
+       return false;
     }
 
-    if (!sta_ds->rmfEnabled) {
-       status = false;
-       goto end;
-    }
+    if (!sta_ds->rmfEnabled)
+       return false;
 
-    if (sta_ds->pmfSaQueryState == DPH_SA_QUERY_IN_PROGRESS) {
-       status = true;
-       goto end;
-    }
+    if (sta_ds->pmfSaQueryState == DPH_SA_QUERY_IN_PROGRESS)
+       return true;
 
     if (sta_ds->last_assoc_received_time &&
        ((vos_timer_get_system_time() -
-         sta_ds->last_assoc_received_time) < 1000)) {
-	 status = true;
-	 goto end;
-    }
+         sta_ds->last_assoc_received_time) < 1000))
+       return true;
 
     sta_ds->last_assoc_received_time = vos_timer_get_system_time();
-    status = false;
-end:
-	pe_ReleaseGlobalLock(&pMac->lim);
-	return status;
+    return false;
 }
 #endif
 

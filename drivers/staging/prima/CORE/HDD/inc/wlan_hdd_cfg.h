@@ -290,21 +290,6 @@
 #define CFG_ENABLE_DYNAMIC_RA_START_RATE_MAX     (65535)
 #define CFG_ENABLE_DYNAMIC_RA_START_RATE_DEFAULT (0)
 
-/*
- * gEnableRTTsupport
- *
- * @Min: 0 - Disabled
- * @Max: 1 - Enabled
- * @Default: 1 - Enabled
- *
- * The param is used to enable/disable support for RTT
- */
-
-#define CFG_ENABLE_RTT_SUPPORT            "gEnableRTTSupport"
-#define CFG_ENABLE_RTT_SUPPORT_DEFAULT    (1)
-#define CFG_ENABLE_RTT_SUPPORT_MIN        (0)
-#define CFG_ENABLE_RTT_SUPPORT_MAX        (1)
-
 /* Bit mask value to enable RTS/CTS for different modes
  * for 2.4 GHz, HT20 - 0x0001, for 2.4 GHz, HT40 - 0x0002
  * for 2.4 GHz, VHT20 - 0x0004, for 2.4 GHz, VHT40 - 0x0008
@@ -1173,11 +1158,6 @@ typedef enum
 #define CFG_REORDER_TIME_VO_MIN                            30
 #define CFG_REORDER_TIME_VO_MAX                            1000
 #define CFG_REORDER_TIME_VO_DEFAULT                        40
-
-#define CFG_ENABLE_PN_REPLAY_NAME                          "PNreplayCheck"
-#define CFG_ENABLE_PN_REPLAY_MIN                           0
-#define CFG_ENABLE_PN_REPLAY_MAX                           1
-#define CFG_ENABLE_PN_REPLAY_DEFAULT                       0
 
 #if defined WLAN_FEATURE_VOWIFI
 #define CFG_RRM_ENABLE_NAME                              "gRrmEnable"
@@ -2763,6 +2743,11 @@ This feature requires the dependent cfg.ini "gRoamPrefer5GHz" set to 1 */
 #define CFG_OPTIMIZE_CA_EVENT_ENABLE     ( 1 )
 #define CFG_OPTIMIZE_CA_EVENT_DEFAULT    ( 0 )
 
+#define CFG_FWR_MEM_DUMP_NAME       "gEnableFwrMemDump"
+#define CFG_FWR_MEM_DUMP_MAX        ( 1 )
+#define CFG_FWR_MEM_DUMP_MIN        ( 0 )
+#define CFG_FWR_MEM_DUMP_DEF        ( 1 )
+
 #define CFG_ACTIVE_PASSIVE_CHAN_CONV_NAME "gActivePassiveChCon"
 #define CFG_ACTIVE_PASSIVE_CHAN_CONV_MIN  (0)
 #define CFG_ACTIVE_PASSIVE_CHAN_CONV_MAX  (1)
@@ -3175,7 +3160,6 @@ typedef struct
    v_U16_t                      BeReorderAgingTime;
    v_U16_t                      ViReorderAgingTime;
    v_U16_t                      VoReorderAgingTime;
-   v_BOOL_t                     enablePNReplay;
 
    /* Wowl pattern */
    char                        wowlPattern[1024];         
@@ -3439,6 +3423,7 @@ typedef struct
    v_U32_t                     linkFailTxCnt;
    v_BOOL_t                    ignorePeerHTopMode;
    v_U8_t                      gOptimizeCAevent;
+   v_BOOL_t                    enableFwrMemDump;
    v_U8_t                      gActivePassiveChCon;
    v_U32_t                     cfgExtScanConcMode;
    v_U16_t                     rps_mask;
@@ -3466,7 +3451,6 @@ typedef struct
    v_BOOL_t                    sap_probe_resp_offload;
    v_BOOL_t                    sap_internal_restart;
    v_BOOL_t                    disable_scan_during_sco;
-   uint8_t                     enable_rtt_support;
 } hdd_config_t;
 
 /*--------------------------------------------------------------------------- 
